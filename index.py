@@ -23,13 +23,33 @@ def run():
 
                 route.continue_(url=new_url)
 
+            if "https://marketplace.ifood.com.br/v1/merchants/" in request.url:
+                merchantId = request.url.split("/")[5]
+
+                new_url = f"https://marketplace.ifood.com.br/v1/merchants/{merchantId}/catalog?latitude=-16.7266117&longitude=-49.2745076"
+
+                print("Modificando a URL da requisição para:", new_url)
+
+                route.continue_(url=new_url)
+
         page.route("**/v1/merchant-info/graphql*", handle_route)
+        page.route("**/v1/merchants/*/catalog", handle_route)
 
         def hadle_response(response):
             if (
                 "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
                 in response.url
             ):
+                print("URL da API:", response.url)
+                print("Status:", response.status)
+
+                try:
+                    formatted_json = json.dumps(response.json(), indent=4)
+                    print("Resposta JSON:", formatted_json)
+                except:
+                    print("A resposta não está em formato JSON.")
+
+            if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
                 print("URL da API:", response.url)
                 print("Status:", response.status)
 
