@@ -27,7 +27,7 @@ class DeliveryMethod(BaseModel):
     maxTime: int
     minTime: int
     mode: str
-    originalValue: float
+    originalValue: Optional[float] = None
     priority: int
     schedule: Schedule
     state: str
@@ -40,6 +40,12 @@ class DeliveryMethod(BaseModel):
 class MainCategory(BaseModel):
     code: str
     name: str
+
+
+class MainCategoryMerchantExtra(BaseModel):
+    code: str
+    description: str
+    friendlyName: str
 
 
 class Resource(BaseModel):
@@ -115,7 +121,7 @@ class MerchantExtra(BaseModel):
     groups: List[Group]
     id: str
     locale: str
-    mainCategory: MainCategory
+    mainCategory: MainCategoryMerchantExtra
     merchantChain: Dict[str, str]
     metadata: Metadata
     minimumOrderValue: int
@@ -128,7 +134,7 @@ class MerchantExtra(BaseModel):
     shortId: int
     tags: List[str]
     takeoutTime: int
-    userRating: float
+    userRatingCount: float
 
 
 class Merchant(BaseModel):
@@ -155,6 +161,10 @@ class Merchant(BaseModel):
     userRating: float
 
 
-class MerchantIfood(BaseModel):
+class Data(BaseModel):
     merchant: Merchant
     merchantExtra: MerchantExtra
+
+
+class MerchantIfood(BaseModel):
+    data: Data

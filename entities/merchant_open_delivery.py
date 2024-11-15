@@ -2,8 +2,9 @@ from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel
 
+from enums.merchant import MerchantStatus
 
-# Subclasses para estrutura do JSON
+
 class MinOrderValue(BaseModel):
     value: float
     currency: str
@@ -172,13 +173,13 @@ class Availability(BaseModel):
 
 # Classe principal Merchant
 class MerchantOpenDelivery(BaseModel):
-    lastUpdate: datetime
+    lastUpdate: str
     TTL: int
     id: str
     status: str
-    basicInfo: BasicInfo
-    services: List[Service]
-    items: List[Item]
-    menus: List[Menu]
-    categories: List[Category]
-    availabilities: List[Availability]
+    basicInfo: Optional[BasicInfo] = None
+    services: Optional[List[Service]] = None
+    items: Optional[List[Item]] = None
+    menus: Optional[List[Menu]] = None
+    categories: Optional[List[Category]] = None
+    availabilities: Optional[List[Availability]] = None
