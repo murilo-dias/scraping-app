@@ -1,9 +1,15 @@
 import json
 from playwright.sync_api import sync_playwright
+from pydantic import TypeAdapter
+from pprint import pprint
 
-latitude = -16.7266117
-longitude = -49.2745076
-urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway---parque-amazonia-parque-amazonia/55c9bff8-f810-42d6-9242-421a82a8754e"
+from entities.merchant_ifood import MerchantIfood
+from transform import transform
+
+latitude = -16.6201783
+longitude = -49.3436878
+
+urlSite = "https://www.ifood.com.br/delivery/goiania-go/mcdonalds---portal-shopping-gps-capuava/2d6cbf93-8ebe-49f2-ae2e-e2a5cc167b24"
 
 
 def run():
@@ -32,31 +38,34 @@ def run():
         page.route("**/v1/merchant-info/graphql*", handle_route_merchant)
         page.route("**/v1/merchants/*/catalog", handle_route_catalog)
 
-        def hadle_response(response):
+        def handle_response(response):
             if (
                 "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
                 in response.url
             ):
-                print("URL da API:", response.url)
-                print("Status:", response.status)
-
                 try:
-                    formatted_json = json.dumps(response.json(), indent=4)
-                    print("Resposta JSON:", formatted_json)
-                except:
-                    print("A resposta não está em formato JSON.")
+                    responseData = response.json()
+                    adapter = TypeAdapter(MerchantIfood)
+                    merchantIfood = adapter.validate_python(responseData)
+
+                    merchant = transform(merchantIfood=merchantIfood)
+
+                    formatted_json = json.dumps(merchant.model_dump(), indent=2)
+                    print(formatted_json)
+
+                except json.JSONDecodeError:
+                    print("Erro: A resposta não está em formato JSON.")
+                except Exception as e:
+                    print("Erro ao validar a resposta JSON:", str(e))
 
             if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
-                print("URL da API:", response.url)
-                print("Status:", response.status)
-
                 try:
                     formatted_json = json.dumps(response.json(), indent=4)
-                    print("Resposta JSON:", formatted_json)
+                    ##print("Resposta JSON:", formatted_json)
                 except:
                     print("A resposta não está em formato JSON.")
 
-        page.on("response", hadle_response)
+        page.on("response", handle_response)
 
         page.goto(urlSite)
 
