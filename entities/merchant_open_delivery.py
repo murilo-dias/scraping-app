@@ -137,12 +137,12 @@ class Item(BaseModel):
 
 
 class Menu(BaseModel):
-    id: str
+    id: Optional[str] = None
     name: str
-    description: str
+    description: Optional[str] = None
     externalCode: str
-    disclaimer: str
-    categoryId: List[str]
+    disclaimer: Optional[str] = None
+    categoryId: Optional[List[str]] = None
 
 
 class Category(BaseModel):

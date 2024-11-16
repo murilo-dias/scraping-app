@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 import uuid
 
 from entities.merchant_ifood import MerchantIfood
@@ -9,6 +10,7 @@ from entities.merchant_open_delivery import (
     BasicInfo,
     MinOrderValue,
     Address,
+    Menu,
 )
 from enums.merchant import MerchantCategories, MerchantStatus, Currency, MerchantType
 
@@ -65,9 +67,21 @@ def transformBaseInfo(merchantIfood: MerchantIfood) -> BasicInfo:
     )
 
 
+def transformMenu(merchantIfoo: MerchantIfood) -> List[Menu]:
+    merchant = merchantIfoo.data.merchant
+    return [
+        Menu(
+            name="IFOOD",
+            externalCode=merchant.contextSetup.catalogGroup,
+        )
+    ]
+
+
 def transform(merchantIfood: MerchantIfood) -> MerchantOpenDelivery:
     merchant = merchantIfood.data.merchant
     merchantExtra = merchantIfood.data.merchantExtra
+
+    menus = transformMenu(merchantIfoo=merchantIfood)
 
     return MerchantOpenDelivery(
         lastUpdate=datetime.now().isoformat(),
@@ -79,4 +93,5 @@ def transform(merchantIfood: MerchantIfood) -> MerchantOpenDelivery:
             else MerchantStatus.UNAVAILABLE.value
         ),
         basicInfo=transformBaseInfo(merchantIfood=merchantIfood),
+        menus=menus,
     )
