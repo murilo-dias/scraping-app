@@ -14,10 +14,30 @@ class DeliveryFee(BaseModel):
     value: float
 
 
+class Shift(BaseModel):
+    dayOfWeek: int | str
+    startTime: str
+    endTime: str
+    interval: int
+
+
+class TimeSlot(BaseModel):
+    availableLoad: int
+    date: str
+    endDateTime: int
+    endTime: str
+    id: str
+    isAvailable: bool
+    originalPrice: int
+    price: int
+    startDateTime: int
+    startTime: str
+
+
 class Schedule(BaseModel):
     now: bool
-    shifts: List[str]
-    timeSlots: List[str]
+    shifts: List[Shift]
+    timeSlots: List[TimeSlot]
 
 
 class DeliveryMethod(BaseModel):
@@ -60,10 +80,10 @@ class Address(BaseModel):
     latitude: float
     longitude: float
     state: str
-    streetName: str
-    streetNumber: str
-    timezone: str
-    zipCode: str
+    streetName: Optional[str] = None
+    streetNumber: Optional[str] = None
+    timezone: Optional[str] = None
+    zipCode: Optional[str] = None
 
 
 class Category(BaseModel):
@@ -102,7 +122,7 @@ class Metadata(BaseModel):
     ifoodClub: Dict[str, MetadataBanner]
 
 
-class Shift(BaseModel):
+class ShiftMerchantExtra(BaseModel):
     dayOfWeek: str
     duration: int
     start: str
@@ -130,7 +150,7 @@ class MerchantExtra(BaseModel):
     phoneIf: str
     priceRange: str
     resources: List[Resource]
-    shifts: List[Shift]
+    shifts: List[ShiftMerchantExtra]
     shortId: int
     tags: List[str]
     takeoutTime: int

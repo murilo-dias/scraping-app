@@ -2,8 +2,6 @@ from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel
 
-from enums.merchant import MerchantStatus
-
 
 class MinOrderValue(BaseModel):
     value: float
@@ -18,28 +16,28 @@ class Address(BaseModel):
     street: str
     number: str
     postalCode: str
-    complement: str
-    reference: str
+    complement: Optional[str] = None
+    reference: Optional[str] = None
     latitude: float
     longitude: float
 
 
 class ContactPhones(BaseModel):
     commercialNumber: str
-    whatsappNumber: str
+    whatsappNumber: Optional[str] = None
 
 
 class Image(BaseModel):
     URL: str
-    CRC_32: str
+    CRC_32: Optional[str] = None
 
 
 class BasicInfo(BaseModel):
     name: str
     document: str
-    corporateName: str
+    corporateName: Optional[str] = None
     description: str
-    averageTicket: int
+    averageTicket: Optional[str] = None
     averagePreparationTime: int
     minOrderValue: MinOrderValue
     merchantType: str
@@ -49,7 +47,7 @@ class BasicInfo(BaseModel):
     contactPhones: ContactPhones
     logoImage: Image
     bannerImage: Image
-    createdAt: datetime
+    createdAt: Optional[datetime] = None
 
 
 class Price(BaseModel):
@@ -118,7 +116,7 @@ class Service(BaseModel):
 
 class ImageItem(BaseModel):
     URL: str
-    CRC_32: str
+    CRC_32: Optional[str] = None
 
 
 class NutritionalInfo(BaseModel):

@@ -1,15 +1,14 @@
 import json
 from playwright.sync_api import sync_playwright
 from pydantic import TypeAdapter
-from pprint import pprint
+
 
 from entities.merchant_ifood import MerchantIfood
 from transform import transform
 
 latitude = -16.6201783
 longitude = -49.3436878
-
-urlSite = "https://www.ifood.com.br/delivery/goiania-go/mcdonalds---portal-shopping-gps-capuava/2d6cbf93-8ebe-49f2-ae2e-e2a5cc167b24"
+urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway---jardim-curitiba-jardim-curitiba/ad7accaa-afb7-443c-bb5e-7a924f3ad137"
 
 
 def run():
