@@ -1,4 +1,4 @@
-import json
+import requests
 from playwright.sync_api import sync_playwright
 
 latitude = -16.6201783
@@ -38,19 +38,35 @@ def run():
                 in response.url
             ):
                 try:
-                    formatted_json = json.dumps(response.json(), indent=2)
-                    print("Resposta JSON:", formatted_json)
+                    result = requests.post(
+                        "https://webhook.site/dc42a828-d61e-4184-aae8-22a8d4e99d3d",
+                        json={
+                            "merchantId": 1,
+                            "type": "MerchantInfo",
+                            "body": response.json(),
+                        },
+                    )
+                    if result.status_code == 200:
+                        print(result)
 
                 except Exception as e:
-                    print("Erro ao validar a resposta JSON:", str(e))
+                    print("Erro ao processar requisição:", str(e))
 
             if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
                 try:
-                    formatted_json = json.dumps(response.json(), indent=2)
-                    ##print("Resposta JSON:", formatted_json)
+                    result = requests.post(
+                        "https://webhook.site/dc42a828-d61e-4184-aae8-22a8d4e99d3d",
+                        json={
+                            "merchantId": 1,
+                            "type": "MerchantCatalog",
+                            "body": response.json(),
+                        },
+                    )
+                    if result.status_code == 200:
+                        print(result)
 
                 except Exception as e:
-                    print("Erro ao validar a resposta JSON:", str(e))
+                    print("Erro ao processar requisição:", str(e))
 
         page.on("response", handle_response)
 
