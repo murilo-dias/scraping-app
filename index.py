@@ -1,10 +1,5 @@
 import json
 from playwright.sync_api import sync_playwright
-from pydantic import TypeAdapter
-
-
-from entities.merchant_ifood import MerchantIfood
-from transform import transform
 
 latitude = -16.6201783
 longitude = -49.3436878
@@ -43,26 +38,19 @@ def run():
                 in response.url
             ):
                 try:
-                    responseData = response.json()
-                    adapter = TypeAdapter(MerchantIfood)
-                    merchantIfood = adapter.validate_python(responseData)
+                    formatted_json = json.dumps(response.json(), indent=2)
+                    print("Resposta JSON:", formatted_json)
 
-                    merchant = transform(merchantIfood=merchantIfood)
-
-                    formatted_json = json.dumps(merchant.model_dump(), indent=2)
-                    print(formatted_json)
-
-                except json.JSONDecodeError:
-                    print("Erro: A resposta não está em formato JSON.")
                 except Exception as e:
                     print("Erro ao validar a resposta JSON:", str(e))
 
             if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
                 try:
-                    formatted_json = json.dumps(response.json(), indent=4)
+                    formatted_json = json.dumps(response.json(), indent=2)
                     ##print("Resposta JSON:", formatted_json)
-                except:
-                    print("A resposta não está em formato JSON.")
+
+                except Exception as e:
+                    print("Erro ao validar a resposta JSON:", str(e))
 
         page.on("response", handle_response)
 
