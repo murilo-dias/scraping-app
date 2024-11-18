@@ -43,7 +43,7 @@ def run():
                     {
                         "merchantId": 1,
                         "type": "ifoodMerchant",
-                        "body": response.json(),
+                        "data": response.json().get("data"),
                     }
                 )
 
@@ -52,7 +52,7 @@ def run():
                     {
                         "merchantId": 1,
                         "type": "ifoodCatalog",
-                        "body": response.json(),
+                        "data": response.json().get("data"),
                     }
                 )
 
