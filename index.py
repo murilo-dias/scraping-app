@@ -12,6 +12,8 @@ def run():
         context = browser.new_context()
         page = context.new_page()
 
+        merchantData = []
+
         def handle_route_merchant(route, request):
             if (
                 "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
@@ -37,42 +39,36 @@ def run():
                 "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
                 in response.url
             ):
-                try:
-                    result = requests.post(
-                        "https://webhook.site/dc42a828-d61e-4184-aae8-22a8d4e99d3d",
-                        json={
-                            "merchantId": 1,
-                            "type": "MerchantInfo",
-                            "body": response.json(),
-                        },
-                    )
-                    if result.status_code == 200:
-                        print(result)
-
-                except Exception as e:
-                    print("Erro ao processar requisição:", str(e))
+                merchantData.append(
+                    {
+                        "merchantId": 1,
+                        "type": "ifoodMerchant",
+                        "body": response.json(),
+                    }
+                )
 
             if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
-                try:
-                    result = requests.post(
-                        "https://webhook.site/dc42a828-d61e-4184-aae8-22a8d4e99d3d",
-                        json={
-                            "merchantId": 1,
-                            "type": "MerchantCatalog",
-                            "body": response.json(),
-                        },
-                    )
-                    if result.status_code == 200:
-                        print(result)
-
-                except Exception as e:
-                    print("Erro ao processar requisição:", str(e))
+                merchantData.append(
+                    {
+                        "merchantId": 1,
+                        "type": "ifoodCatalog",
+                        "body": response.json(),
+                    }
+                )
 
         page.on("response", handle_response)
 
         page.goto(urlSite)
 
         page.wait_for_load_state("networkidle")
+
+        if len(merchantData) == 2:
+            result = requests.post(
+                "https://webhook.site/dc42a828-d61e-4184-aae8-22a8d4e99d3d",
+                json=merchantData,
+            )
+            if result.status_code == 200:
+                print(result)
 
         context.close()
 
