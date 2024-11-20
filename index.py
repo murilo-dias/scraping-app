@@ -1,9 +1,17 @@
-import requests
+import uuid
+from datetime import datetime
 from playwright.sync_api import sync_playwright
+import requests
+from entities.merchant_open_delivery import Merchant, Status
+from transform import transform_basic_info
 
 latitude = -16.6201783
 longitude = -49.3436878
 urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway---jardim-curitiba-jardim-curitiba/ad7accaa-afb7-443c-bb5e-7a924f3ad137"
+
+
+def UUID5(value: str) -> str:
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, value))
 
 
 def run():
@@ -11,8 +19,6 @@ def run():
         browser = p.chromium.launch(headless=True)
         context = browser.new_context()
         page = context.new_page()
-
-        merchantData = []
 
         def handle_route_merchant(route, request):
             if (
@@ -39,36 +45,40 @@ def run():
                 "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
                 in response.url
             ):
-                merchantData.append(
-                    {
-                        "merchantId": 1,
-                        "type": "ifoodMerchant",
-                        "data": response.json().get("data"),
-                    }
+                merchant = response.json().get("data").get("merchant")
+                merchantExtra = response.json().get("data").get("merchantExtra")
+                cnpj = merchantExtra.get("documents").get("CNPJ").get("value")
+
+                merchantOpenDelivery = Merchant(
+                    id=UUID5(cnpj),
+                    lastUpdate=datetime.now().isoformat(),
+                    TTL=86400,
+                    status=(
+                        Status.AVAILABLE
+                        if merchant.get("available") == True
+                        else Status.UNAVAILABLE
+                    ),
+                    basicInfo=transform_basic_info(
+                        merchant=merchant, merchantExtra=merchantExtra
+                    ),
                 )
 
-            if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
-                merchantData.append(
-                    {
-                        "merchantId": 1,
-                        "type": "ifoodCatalog",
-                        "data": response.json().get("data"),
-                    }
+                result = requests.post(
+                    "https://webhook.site/dc42a828-d61e-4184-aae8-22a8d4e99d3d",
+                    data=merchantOpenDelivery.model_dump_json(indent=2),
+                    headers={"Content-Type": "application/json"},
                 )
+                if result.status_code == 200:
+                    print(result)
+
+            if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
+                response.json().get("data")
 
         page.on("response", handle_response)
 
         page.goto(urlSite)
 
         page.wait_for_load_state("networkidle")
-
-        if len(merchantData) == 2:
-            result = requests.post(
-                "https://webhook.site/dc42a828-d61e-4184-aae8-22a8d4e99d3d",
-                json=merchantData,
-            )
-            if result.status_code == 200:
-                print(result)
 
         context.close()
 
