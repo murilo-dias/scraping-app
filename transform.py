@@ -13,6 +13,7 @@ from entities.merchant_open_delivery import (
     MinOrderValue,
     Service,
     Status,
+    Menu,
 )
 
 
@@ -100,4 +101,14 @@ def transform_service(merchant, merchantExtra, menuId) -> List[Service]:
             },
             deliveryMethods,
         )
+    )
+
+
+def transform_menu(catalogGroup) -> Menu:
+    return Menu(
+        id=UUID4(),
+        name="IFood",
+        description="Menu importado do IFood",
+        externalCode=catalogGroup,
+        categoryId=[],
     )

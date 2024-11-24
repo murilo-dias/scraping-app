@@ -150,6 +150,15 @@ class Service(BaseModel):
     serviceHours: ServiceHour
 
 
+class Menu(BaseModel):
+    id: str
+    name: str
+    description: str
+    externalCode: str
+    disclaimer: Optional[str] = None
+    categoryId: Optional[List[str]] = None
+
+
 class Merchant(BaseModel):
     lastUpdate: datetime
     TTL: int
@@ -157,3 +166,4 @@ class Merchant(BaseModel):
     status: Status
     basicInfo: BasicInfo
     services: List[Service]
+    menus: List[Menu]
