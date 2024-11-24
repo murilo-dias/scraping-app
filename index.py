@@ -3,7 +3,7 @@ from datetime import datetime
 from playwright.sync_api import sync_playwright
 import requests
 from entities.merchant_open_delivery import Merchant, Status
-from transform import transform_basic_info
+from transform import transform_basic_info, transform_service
 
 latitude = -16.6201783
 longitude = -49.3436878
@@ -61,10 +61,13 @@ def run():
                     basicInfo=transform_basic_info(
                         merchant=merchant, merchantExtra=merchantExtra
                     ),
+                    services=transform_service(
+                        merchant=merchant, merchantExtra=merchantExtra, menuId="123456"
+                    ),
                 )
 
                 result = requests.post(
-                    "https://webhook.site/dc42a828-d61e-4184-aae8-22a8d4e99d3d",
+                    "https://webhook.site/ceb6041d-a17d-484f-a0db-db6be7c6d921",
                     data=merchantOpenDelivery.model_dump_json(indent=2),
                     headers={"Content-Type": "application/json"},
                 )

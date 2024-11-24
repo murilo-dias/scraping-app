@@ -1,4 +1,7 @@
-from datetime import datetime
+import uuid
+from typing import List
+from datetime import datetime, timedelta
+
 from entities.merchant_open_delivery import (
     Address,
     BasicInfo,
@@ -8,7 +11,13 @@ from entities.merchant_open_delivery import (
     MerchantCategories,
     MerchantType,
     MinOrderValue,
+    Service,
+    Status,
 )
+
+
+def UUID4() -> str:
+    return str(uuid.uuid4())
 
 
 def transform_basic_info(merchant, merchantExtra) -> BasicInfo:
@@ -43,4 +52,52 @@ def transform_basic_info(merchant, merchantExtra) -> BasicInfo:
         logoImage=Image(URL=logo.get("fileName")),
         bannerImage=Image(URL=banner.get("fileName")),
         createdAt=datetime.now().isoformat(),
+    )
+
+
+def transform_service(merchant, merchantExtra, menuId) -> List[Service]:
+    deliveryMethods = merchant.get("deliveryMethods")
+    shifts = merchantExtra.get("shifts")
+
+    def getEndTime(shift):
+        startTime = datetime.strptime(shift.get("start"), "%H:%M:%S")
+        endTime = startTime + timedelta(minutes=shift.get("duration"))
+
+        return endTime.strftime("%H:%M:%S")
+
+    timePeriods = list(
+        {
+            (shift.get("start"), getEndTime(shift=shift)): {
+                "startTime": shift.get("start"),
+                "endTime": getEndTime(shift=shift),
+            }
+            for shift in shifts
+        }.values()
+    )
+
+    return list(
+        map(
+            lambda deliveryMethod: {
+                "id": UUID4(),
+                "status": (
+                    Status.AVAILABLE.value
+                    if deliveryMethod.get("state") == "ELIGIBLE"
+                    else Status.UNAVAILABLE.value
+                ),
+                "serviceType": deliveryMethod.get("mode"),
+                "menuId": menuId,
+                "serviceHours": {
+                    "id": UUID4(),
+                    "weekHours": [
+                        {
+                            "dayOfWeek": list(
+                                map(lambda shift: shift.get("dayOfWeek"), shifts)
+                            ),
+                            "timePeriods": timePeriods[0] if timePeriods else None,
+                        }
+                    ],
+                },
+            },
+            deliveryMethods,
+        )
     )

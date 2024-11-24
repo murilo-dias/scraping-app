@@ -17,6 +17,21 @@ class Status(str, Enum):
     UNAVAILABLE = "UNAVAILABLE"
 
 
+class ServiceType(str, Enum):
+    DELIVERY = "DELIVERY"
+    TAKEOUT = "TAKEOUT"
+
+
+class DayOfWeek(str, Enum):
+    MONDAY = "MONDAY"
+    TUESDAY = "TUESDAY"
+    WEDNESDAY = "WEDNESDAY"
+    THURSDAY = "THURSDAY"
+    FRIDAY = "FRIDAY"
+    SATURDAY = "SATURDAY"
+    SUNDAY = "SUNDAY"
+
+
 class MerchantCategories(str, Enum):
     BURGERS = "BURGERS"
     PIZZA = "PIZZA"
@@ -112,9 +127,33 @@ class BasicInfo(BaseModel):
     createdAt: datetime
 
 
+class TimePeriods(BaseModel):
+    startTime: str
+    endTime: str
+
+
+class WeekHour(BaseModel):
+    dayOfWeek: List[DayOfWeek] = None
+    timePeriods: TimePeriods
+
+
+class ServiceHour(BaseModel):
+    id: str
+    weekHours: List[WeekHour]
+
+
+class Service(BaseModel):
+    id: str
+    status: Status
+    serviceType: ServiceType
+    menuId: str
+    serviceHours: ServiceHour
+
+
 class Merchant(BaseModel):
     lastUpdate: datetime
     TTL: int
     id: str
     status: Status
     basicInfo: BasicInfo
+    services: List[Service]
