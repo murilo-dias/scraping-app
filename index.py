@@ -2,12 +2,19 @@ import uuid
 from datetime import datetime
 from playwright.sync_api import sync_playwright
 import requests
-from entities.merchant_open_delivery import Merchant, Status
-from transform import transform_basic_info, transform_service, transform_menu
+from entities.merchant_open_delivery import Menu, Merchant, Status, Category
+from transform import (
+    transform_basic_info,
+    transform_service,
+    transform_menu,
+    transform_category,
+)
 
 latitude = -16.6201783
 longitude = -49.3436878
 urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway---jardim-curitiba-jardim-curitiba/ad7accaa-afb7-443c-bb5e-7a924f3ad137"
+
+menus: list[Menu] = []
 
 
 def UUID5(value: str) -> str:
@@ -49,7 +56,9 @@ def run():
                 merchantExtra = response.json().get("data").get("merchantExtra")
                 cnpj = merchantExtra.get("documents").get("CNPJ").get("value")
 
-                menu = transform_menu(merchant.get("contextSetup").get("catalogGroup"))
+                menus.append(
+                    transform_menu(merchant.get("contextSetup").get("catalogGroup"))
+                )
 
                 merchantOpenDelivery = Merchant(
                     id=UUID5(cnpj),
@@ -66,21 +75,30 @@ def run():
                     services=transform_service(
                         merchant=merchant,
                         merchantExtra=merchantExtra,
-                        menuId=menu.id,
+                        menuId=menus[0].id,
                     ),
-                    menus=[menu],
+                    menus=menus,
                 )
 
+                # result = requests.post(
+                #    "https://webhook.site/59bdf0e1-5f9e-4a81-b6a3-c1d41684642d",
+                #    data=merchantOpenDelivery.model_dump_json(indent=2),
+                #    headers={"Content-Type": "application/json"},
+                # )
+                # if result.status_code == 200:
+                #    print(result)
+
+            if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
+                menu = response.json().get("data").get("menu")
+
+                categories = transform_category(menu)
+
                 result = requests.post(
-                    "https://webhook.site/59bdf0e1-5f9e-4a81-b6a3-c1d41684642d",
-                    data=merchantOpenDelivery.model_dump_json(indent=2),
-                    headers={"Content-Type": "application/json"},
+                    "https://webhook.site/2d76a692-31c5-4444-a7df-82de9b10ca87",
+                    json=categories,
                 )
                 if result.status_code == 200:
                     print(result)
-
-            if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
-                response.json().get("data")
 
         page.on("response", handle_response)
 

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from entities.merchant_open_delivery import (
     Address,
     BasicInfo,
+    Category,
     ContactPhones,
     Currecy,
     Image,
@@ -112,3 +113,15 @@ def transform_menu(catalogGroup) -> Menu:
         externalCode=catalogGroup,
         categoryId=[],
     )
+
+
+def transform_category(menus) -> List[Category]:
+    return [
+        Category(
+            id=UUID4(),
+            name=menu.get("name"),
+            externalCode=menu.get("code"),
+            status=Status.AVAILABLE.value,
+        ).model_dump()
+        for menu in menus
+    ]

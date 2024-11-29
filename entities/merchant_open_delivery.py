@@ -159,6 +159,18 @@ class Menu(BaseModel):
     categoryId: Optional[List[str]] = None
 
 
+class Category(BaseModel):
+    id: str
+    index: Optional[int] = None
+    name: str
+    description: Optional[str] = None
+    image: Optional[Image] = None
+    externalCode: str
+    status: Status
+    availabilityId: Optional[str] = []
+    itemOfferId: Optional[str] = []
+
+
 class Merchant(BaseModel):
     lastUpdate: datetime
     TTL: int
@@ -167,3 +179,4 @@ class Merchant(BaseModel):
     basicInfo: BasicInfo
     services: List[Service]
     menus: List[Menu]
+    categories: Optional[List[Category]] = []
