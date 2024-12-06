@@ -1,13 +1,12 @@
-import uuid
 from datetime import datetime
 from playwright.sync_api import sync_playwright
 import requests
-from entities.merchant_open_delivery import Menu, Merchant, Status, Category
+from entities.merchant_open_delivery import Menu, Merchant, Status
 from transform import (
+    UUID5,
     transform_basic_info,
     transform_service,
     transform_menu,
-    transform_category,
 )
 
 latitude = -16.6201783
@@ -15,10 +14,6 @@ longitude = -49.3436878
 urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway---jardim-curitiba-jardim-curitiba/ad7accaa-afb7-443c-bb5e-7a924f3ad137"
 
 menus: list[Menu] = []
-
-
-def UUID5(value: str) -> str:
-    return str(uuid.uuid5(uuid.NAMESPACE_DNS, value))
 
 
 def run():
@@ -56,8 +51,16 @@ def run():
                 merchantExtra = response.json().get("data").get("merchantExtra")
                 cnpj = merchantExtra.get("documents").get("CNPJ").get("value")
 
+                catalogGroup = merchant.get("contextSetup").get("catalogGroup")
+
                 menus.append(
-                    transform_menu(merchant.get("contextSetup").get("catalogGroup"))
+                    Menu(
+                        id=UUID5(catalogGroup),
+                        name="IFood",
+                        description="Menu importado do IFood",
+                        externalCode=catalogGroup,
+                        categoryId=[],
+                    ).model_dump()
                 )
 
                 merchantOpenDelivery = Merchant(
@@ -75,7 +78,7 @@ def run():
                     services=transform_service(
                         merchant=merchant,
                         merchantExtra=merchantExtra,
-                        menuId=menus[0].id,
+                        menuId=menus[0].get("id"),
                     ),
                     menus=menus,
                 )
@@ -89,13 +92,13 @@ def run():
                 #    print(result)
 
             if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
-                menu = response.json().get("data").get("menu")
+                catalogIfood = response.json().get("data").get("menu")
 
-                categories = transform_category(menu)
+                result = transform_menu(catalogIfood, menus=menus)
 
                 result = requests.post(
-                    "https://webhook.site/2d76a692-31c5-4444-a7df-82de9b10ca87",
-                    json=categories,
+                    "https://webhook.site/bad7aaad-1d23-41a0-9a65-63983ee451f1",
+                    json=result,
                 )
                 if result.status_code == 200:
                     print(result)
