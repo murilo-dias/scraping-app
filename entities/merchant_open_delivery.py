@@ -8,7 +8,7 @@ class MerchantType(str, Enum):
     RESTAURANT = "RESTAURANT"
 
 
-class Currecy(str, Enum):
+class Currency(str, Enum):
     BRL = "BRL"
 
 
@@ -30,6 +30,14 @@ class DayOfWeek(str, Enum):
     FRIDAY = "FRIDAY"
     SATURDAY = "SATURDAY"
     SUNDAY = "SUNDAY"
+
+
+class Unit(str, Enum):
+    UN = "UN"
+    KG = "KG"
+    OZ = "OZ"
+    LB = "LB"
+    GAL = "GAL"
 
 
 class MerchantCategories(str, Enum):
@@ -82,7 +90,7 @@ class MerchantCategories(str, Enum):
 
 class MinOrderValue(BaseModel):
     value: float
-    currency: Currecy
+    currency: Currency
 
 
 class Address(BaseModel):
@@ -166,9 +174,37 @@ class Category(BaseModel):
     description: Optional[str] = None
     image: Optional[Image] = None
     externalCode: str
-    status: Status
-    availabilityId: Optional[str] = []
-    itemOfferId: Optional[str] = []
+    status: Optional[Status] = Status.AVAILABLE
+    availabilityId: Optional[List[str]] = []
+    itemOfferId: Optional[List[str]] = []
+
+
+class Price(BaseModel):
+    value: float
+    originalValue: float
+    currency: Currency
+
+
+class ItemOffer(BaseModel):
+    id: str
+    itemId: str
+    index: Optional[int] = None
+    status: Optional[Status] = Status.AVAILABLE
+    price: Price
+    availabilityId: Optional[List[str]] = []
+    optionGroupsId: Optional[List[str]] = []
+
+
+class Item(BaseModel):
+    id: str
+    name: str
+    description: str
+    externalCode: str
+    status: Optional[Status] = Status.AVAILABLE
+    image: Optional[Image] = None
+    serving: Optional[int] = None
+    unit: Optional[Unit] = Unit.UN
+    ean: Optional[str] = None
 
 
 class Merchant(BaseModel):
