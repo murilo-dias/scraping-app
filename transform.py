@@ -7,19 +7,26 @@ from entities.merchant_open_delivery import (
     BasicInfo,
     Category,
     ContactPhones,
-    Currecy,
+    Currency,
     Image,
+    Item,
     MerchantCategories,
     MerchantType,
     MinOrderValue,
+    Price,
     Service,
     Status,
     Menu,
+    ItemOffer,
 )
 
 
 def UUID4() -> str:
     return str(uuid.uuid4())
+
+
+def UUID5(value: str) -> str:
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, value))
 
 
 def transform_basic_info(merchant, merchantExtra) -> BasicInfo:
@@ -34,7 +41,7 @@ def transform_basic_info(merchant, merchantExtra) -> BasicInfo:
         description=merchantExtra.get("description"),
         averagePreparationTime=merchant.get("preparationTime"),
         minOrderValue=MinOrderValue(
-            currency=Currecy.BRL.value,
+            currency=Currency.BRL.value,
             value=merchant.get("minimumOrderValue"),
         ),
         merchantType=MerchantType.RESTAURANT.value,
@@ -82,9 +89,9 @@ def transform_service(merchant, merchantExtra, menuId) -> List[Service]:
             lambda deliveryMethod: {
                 "id": UUID4(),
                 "status": (
-                    Status.AVAILABLE.value
+                    Status.AVAILABLE
                     if deliveryMethod.get("state") == "ELIGIBLE"
-                    else Status.UNAVAILABLE.value
+                    else Status.UNAVAILABLE
                 ),
                 "serviceType": deliveryMethod.get("mode"),
                 "menuId": menuId,
@@ -105,23 +112,50 @@ def transform_service(merchant, merchantExtra, menuId) -> List[Service]:
     )
 
 
-def transform_menu(catalogGroup) -> Menu:
-    return Menu(
-        id=UUID4(),
-        name="IFood",
-        description="Menu importado do IFood",
-        externalCode=catalogGroup,
-        categoryId=[],
-    )
+def transform_menu(catalogIfood, menus: List[Menu]):
+    categories = []
+    itemOffers = []
+    items = []
 
+    for index, catalog in enumerate(catalogIfood, start=0):
+        categoryObj = Category(
+            id=UUID5(catalog.get("code")),
+            index=index,
+            name=catalog.get("name"),
+            externalCode=catalog.get("code"),
+            itemOfferId=[],
+        )
 
-def transform_category(menus) -> List[Category]:
-    return [
-        Category(
-            id=UUID4(),
-            name=menu.get("name"),
-            externalCode=menu.get("code"),
-            status=Status.AVAILABLE.value,
-        ).model_dump()
-        for menu in menus
-    ]
+        for index, item in enumerate(catalog.get("itens"), start=0):
+            itemObj = Item(
+                id=UUID5(item.get("id")),
+                name=item.get("description"),
+                description=item.get("details", ""),
+                externalCode=item.get("id"),
+                image=Image(URL=item.get("logoUrl")),
+            )
+
+            itemOfferObj = ItemOffer(
+                id=UUID5(itemObj.id),
+                index=index,
+                itemId=itemObj.id,
+                price=Price(
+                    value=item.get("unitMinPrice", 0.0),
+                    originalValue=item.get("unitOriginalPrice", 0.0),
+                    currency=Currency.BRL.value,
+                ),
+            )
+
+            categoryObj.itemOfferId.append(itemOfferObj.id)
+            items.append(itemObj.model_dump())
+            itemOffers.append(itemOfferObj.model_dump())
+
+        categories.append(categoryObj.model_dump())
+        menus[0]["categoryId"] = [category.get("id") for category in categories]
+
+    return {
+        "menus": menus,
+        "categories": categories,
+        "itemOffers": itemOffers,
+        "items": items,
+    }
