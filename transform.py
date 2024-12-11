@@ -13,6 +13,8 @@ from entities.merchant_open_delivery import (
     MerchantCategories,
     MerchantType,
     MinOrderValue,
+    Option,
+    OptionGroup,
     Price,
     Service,
     Status,
@@ -113,9 +115,10 @@ def transform_service(merchant, merchantExtra, menuId) -> List[Service]:
 
 
 def transform_menu(catalogIfood, menus: List[Menu]):
-    categories = []
-    itemOffers = []
     items = []
+    itemOffers = []
+    categories = []
+    optionGroups = []
 
     for index, catalog in enumerate(catalogIfood, start=0):
         categoryObj = Category(
@@ -146,6 +149,46 @@ def transform_menu(catalogIfood, menus: List[Menu]):
                 ),
             )
 
+            for index, choice in enumerate(item.get("choices", []), start=0):
+                optionGroupObj = OptionGroup(
+                    id=UUID5(choice.get("code")),
+                    index=index,
+                    name=choice.get("name"),
+                    minPermitted=choice.get("min"),
+                    maxPermitted=choice.get("max"),
+                    externalCode=choice.get("code"),
+                    options=[],
+                )
+
+                for index, garnishItem in enumerate(
+                    choice.get("garnishItens"), start=0
+                ):
+                    itemOptionObj = Item(
+                        id=garnishItem.get("id"),
+                        name=garnishItem.get("description"),
+                        description=garnishItem.get("details", ""),
+                        externalCode=garnishItem.get("id"),
+                        image=Image(URL=garnishItem.get("logoUrl", "")),
+                    )
+
+                    optionObj = Option(
+                        id=UUID5(garnishItem.get("id")),
+                        index=index,
+                        price=Price(
+                            currency=Currency.BRL,
+                            value=garnishItem.get("unitPrice"),
+                            originalValue=garnishItem.get("unitPrice"),
+                        ),
+                        maxPermitted=choice.get("max"),
+                        itemId=itemOptionObj.id,
+                    )
+
+                    optionGroupObj.options.append(optionObj)
+                    items.append(itemOptionObj.model_dump())
+
+                itemOfferObj.optionGroupsId.append(optionGroupObj.id)
+                optionGroups.append(optionGroupObj.model_dump())
+
             categoryObj.itemOfferId.append(itemOfferObj.id)
             items.append(itemObj.model_dump())
             itemOffers.append(itemOfferObj.model_dump())
@@ -158,4 +201,5 @@ def transform_menu(catalogIfood, menus: List[Menu]):
         "categories": categories,
         "itemOffers": itemOffers,
         "items": items,
+        "optionGroups": optionGroups,
     }

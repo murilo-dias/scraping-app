@@ -97,7 +97,7 @@ def run():
                 result = transform_menu(catalogIfood, menus=menus)
 
                 result = requests.post(
-                    "https://webhook.site/bad7aaad-1d23-41a0-9a65-63983ee451f1",
+                    "https://webhook.site/b6ce4482-ef3f-467e-b4fa-fceb2cd3c89a",
                     json=result,
                 )
                 if result.status_code == 200:
