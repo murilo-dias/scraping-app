@@ -207,6 +207,27 @@ class Item(BaseModel):
     ean: Optional[str] = None
 
 
+class Option(BaseModel):
+    id: str
+    itemId: Optional[str]
+    index: Optional[int]
+    status: Optional[Status] = Status.AVAILABLE
+    price: Price
+    maxPermitted: int
+
+
+class OptionGroup(BaseModel):
+    id: str
+    index: int
+    name: str
+    description: Optional[str] = None
+    externalCode: str
+    status: Optional[Status] = Status.AVAILABLE
+    minPermitted: int
+    maxPermitted: int
+    options: Optional[List[Option]] = []
+
+
 class Merchant(BaseModel):
     lastUpdate: datetime
     TTL: int
