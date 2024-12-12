@@ -1,7 +1,11 @@
-from datetime import datetime
-from playwright.sync_api import sync_playwright
+import os
 import requests
+from datetime import datetime
+from dotenv import load_dotenv
+from playwright.sync_api import sync_playwright
+
 from entities.merchant_open_delivery import Menu, Merchant, Status
+
 from transform import (
     UUID5,
     transform_basic_info,
@@ -9,18 +13,15 @@ from transform import (
     transform_menu,
 )
 
-from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
-latitude = os.getenv("LATITUDE")
-longitude = os.getenv("LONGIDUDE")
-urlSite = os.getenv("URL_SITE")
-urlWebhook = os.getenv("URL_WEBHOOK")
+LATITUDE = os.getenv("LATITUDE")
+LONGITUDE = os.getenv("LONGITUDE")
+URL_SITE = os.getenv("URL_SITE")
+URL_WEBHOOK = os.getenv("URL_WEBHOOK")
 
-
-merchantOpenDelivery: Merchant
+MERCHANT_OPEN_DELIVERY: Merchant
 
 
 def run():
@@ -34,7 +35,7 @@ def run():
                 "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
                 in request.url
             ):
-                new_url = f"https://marketplace.ifood.com.br/v1/merchant-info/graphql?latitude={latitude}&longitude={longitude}&channel=IFOOD"
+                new_url = f"https://marketplace.ifood.com.br/v1/merchant-info/graphql?latitude={LATITUDE}&longitude={LONGITUDE}&channel=IFOOD"
 
                 route.continue_(url=new_url)
 
@@ -42,7 +43,7 @@ def run():
             if "https://marketplace.ifood.com.br/v1/merchants/" in request.url:
                 merchantId = request.url.split("/")[5]
 
-                new_url = f"https://marketplace.ifood.com.br/v1/merchants/{merchantId}/catalog?latitude={latitude}&longitude={longitude}"
+                new_url = f"https://marketplace.ifood.com.br/v1/merchants/{merchantId}/catalog?latitude={LATITUDE}&longitude={LONGITUDE}"
 
                 route.continue_(url=new_url)
 
@@ -50,7 +51,7 @@ def run():
         page.route("**/v1/merchants/*/catalog", handle_route_catalog)
 
         def handle_response(response):
-            global merchantOpenDelivery
+            global MERCHANT_OPEN_DELIVERY
 
             if (
                 "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
@@ -69,7 +70,7 @@ def run():
                     categoryId=[],
                 )
 
-                merchantOpenDelivery = Merchant(
+                MERCHANT_OPEN_DELIVERY = Merchant(
                     id=UUID5(cnpj),
                     lastUpdate=datetime.now().isoformat(),
                     TTL=86400,
@@ -90,27 +91,29 @@ def run():
             if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
                 catalogIfood = response.json().get("data").get("menu")
 
-                result = transform_menu(catalogIfood, menus=merchantOpenDelivery.menus)
-
-                merchantOpenDelivery.categories = result.get("categories")
-                merchantOpenDelivery.itemOffers = result.get("itemOffers")
-                merchantOpenDelivery.items = result.get("items")
-                merchantOpenDelivery.optionGroups = result.get("optionGroups")
-
-                result = requests.post(
-                    urlWebhook,
-                    json=merchantOpenDelivery.model_dump(),
+                result = transform_menu(
+                    catalogIfood, menus=MERCHANT_OPEN_DELIVERY.menus
                 )
-                if result.status_code == 200:
-                    print(result)
+
+                MERCHANT_OPEN_DELIVERY.categories = result.get("categories")
+                MERCHANT_OPEN_DELIVERY.itemOffers = result.get("itemOffers")
+                MERCHANT_OPEN_DELIVERY.items = result.get("items")
+                MERCHANT_OPEN_DELIVERY.optionGroups = result.get("optionGroups")
 
         page.on("response", handle_response)
 
-        page.goto(urlSite)
+        page.goto(URL_SITE)
 
         page.wait_for_load_state("networkidle")
 
         context.close()
+
+        result = requests.post(
+            URL_WEBHOOK,
+            json=MERCHANT_OPEN_DELIVERY.model_dump(),
+        )
+        if result.status_code == 200:
+            print(result)
 
 
 run()
