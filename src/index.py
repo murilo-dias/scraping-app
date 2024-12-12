@@ -1,11 +1,9 @@
-import os
 import requests
 from datetime import datetime
-from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 
+from load_env_vars import load_env_vars
 from entities.merchant_open_delivery import Menu, Merchant, Status
-
 from transform import (
     UUID5,
     transform_basic_info,
@@ -14,17 +12,8 @@ from transform import (
 )
 
 
-load_dotenv()
-
-LATITUDE = os.getenv("LATITUDE")
-LONGITUDE = os.getenv("LONGITUDE")
-URL_SITE = os.getenv("URL_SITE")
-URL_WEBHOOK = os.getenv("URL_WEBHOOK")
-
 MERCHANT_OPEN_DELIVERY: Merchant
-
-if not LATITUDE or not LONGITUDE or not URL_SITE or not URL_WEBHOOK:
-    raise ValueError("Uma ou mais variáveis de ambiente estão ausentes.")
+LATITUDE, LONGITUDE, URL_SITE, URL_WEBHOOK = load_env_vars()
 
 
 def run():
