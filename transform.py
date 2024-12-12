@@ -184,13 +184,13 @@ def transform_menu(catalogIfood, menus: List[Menu]):
                     )
 
                     optionGroupObj.options.append(optionObj)
-                    items.append(itemOptionObj.model_dump())
+                    items.append(itemOptionObj)
 
                 itemOfferObj.optionGroupsId.append(optionGroupObj.id)
                 optionGroups.append(optionGroupObj.model_dump())
 
             categoryObj.itemOfferId.append(itemOfferObj.id)
-            items.append(itemObj.model_dump())
+            items.append(itemObj)
             itemOffers.append(itemOfferObj)
 
         categories.append(categoryObj)
