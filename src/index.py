@@ -16,7 +16,9 @@ from transform import (
 MERCHANT_OPEN_DELIVERY: Merchant
 
 # Carrega as variaveis de ambiente da aplicação
-LATITUDE, LONGITUDE, URL_SITE, URL_WEBHOOK = load_env_vars()
+LATITUDE, LONGITUDE, URL_SITE, URL_WEBHOOK, IFOOD_MERCHANT_URL, IFOOD_CATALOG_URL = (
+    load_env_vars()
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,20 +35,17 @@ def run():
 
             # Modifica a URL para incluir latitude e longitude nas requisições de merchant-info
             def handle_route_merchant(route, request):
-                if (
-                    "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
-                    in request.url
-                ):
-                    new_url = f"https://marketplace.ifood.com.br/v1/merchant-info/graphql?latitude={LATITUDE}&longitude={LONGITUDE}&channel=IFOOD"
+                if IFOOD_MERCHANT_URL in request.url:
+                    new_url = f"{IFOOD_MERCHANT_URL}?latitude={LATITUDE}&longitude={LONGITUDE}&channel=IFOOD"
 
                     route.continue_(url=new_url)
 
             # Modifica a URL para incluir o merchantId, latitude e longitude nas requisições de catalog
             def handle_route_catalog(route, request):
-                if "https://marketplace.ifood.com.br/v1/merchants/" in request.url:
+                if IFOOD_CATALOG_URL in request.url:
                     merchantId = request.url.split("/")[5]
 
-                    new_url = f"https://marketplace.ifood.com.br/v1/merchants/{merchantId}/catalog?latitude={LATITUDE}&longitude={LONGITUDE}"
+                    new_url = f"{IFOOD_CATALOG_URL}/{merchantId}/catalog?latitude={LATITUDE}&longitude={LONGITUDE}"
 
                     route.continue_(url=new_url)
 
@@ -61,10 +60,7 @@ def run():
                 global MERCHANT_OPEN_DELIVERY
 
                 # Verica se e a URL que tem as informações do merchant-info
-                if (
-                    "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
-                    in response.url
-                ):
+                if IFOOD_MERCHANT_URL in response.url:
                     logger.info("Iniciando extração de dados")
 
                     # Recupero as informações que preciso
@@ -107,7 +103,7 @@ def run():
                     )
 
                 # Verica se e a URL que tem as informações do catalogo
-                if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
+                if IFOOD_CATALOG_URL in response.url:
 
                     # Recupero as informações que preciso
                     catalogIfood = response.json().get("data").get("menu")
