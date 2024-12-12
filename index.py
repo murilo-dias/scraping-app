@@ -11,7 +11,7 @@ from transform import (
 
 latitude = -16.6201783
 longitude = -49.3436878
-urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway-vera-cruz-conjunto-vera-cruz/8bf33c63-8572-4dd2-8281-c216d82c1116"
+urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway-castelo-branco-sao-francisco/cc61a369-29a4-4b73-8d84-2a6808068a4f"
 
 
 merchantOpenDelivery: Merchant
@@ -79,18 +79,18 @@ def run():
                     services=transform_service(
                         merchant=merchant, merchantExtra=merchantExtra, menuId=menu.id
                     ),
-                ).model_dump()
+                )
 
             if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
                 catalogIfood = response.json().get("data").get("menu")
 
-                result = transform_menu(
-                    catalogIfood, menus=merchantOpenDelivery.get("menus")
-                )
+                result = transform_menu(catalogIfood, menus=merchantOpenDelivery.menus)
+
+                merchantOpenDelivery.categories = result.get("categories")
 
                 result = requests.post(
                     "https://webhook.site/b6ce4482-ef3f-467e-b4fa-fceb2cd3c89a",
-                    json=merchantOpenDelivery,
+                    json=merchantOpenDelivery.model_dump(),
                 )
                 if result.status_code == 200:
                     print(result)

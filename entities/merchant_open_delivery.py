@@ -236,3 +236,4 @@ class Merchant(BaseModel):
     basicInfo: BasicInfo
     menus: List[Menu]
     services: List[Service]
+    categories: Optional[List[Category]] = []

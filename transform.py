@@ -193,8 +193,8 @@ def transform_menu(catalogIfood, menus: List[Menu]):
             items.append(itemObj.model_dump())
             itemOffers.append(itemOfferObj.model_dump())
 
-        categories.append(categoryObj.model_dump())
-        menus[0]["categoryId"] = [category.get("id") for category in categories]
+        categories.append(categoryObj)
+        menus[0].categoryId = [category.id for category in categories]
 
     return {
         "menus": menus,
