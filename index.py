@@ -9,9 +9,15 @@ from transform import (
     transform_menu,
 )
 
-latitude = -16.6201783
-longitude = -49.3436878
-urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway-castelo-branco-sao-francisco/cc61a369-29a4-4b73-8d84-2a6808068a4f"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+latitude = os.getenv("LATITUDE")
+longitude = os.getenv("LONGIDUDE")
+urlSite = os.getenv("URL_SITE")
+urlWebhook = os.getenv("URL_WEBHOOK")
 
 
 merchantOpenDelivery: Merchant
@@ -92,7 +98,7 @@ def run():
                 merchantOpenDelivery.optionGroups = result.get("optionGroups")
 
                 result = requests.post(
-                    "https://webhook.site/b6ce4482-ef3f-467e-b4fa-fceb2cd3c89a",
+                    urlWebhook,
                     json=merchantOpenDelivery.model_dump(),
                 )
                 if result.status_code == 200:
