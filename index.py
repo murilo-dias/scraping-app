@@ -11,7 +11,7 @@ from transform import (
 
 latitude = -16.6201783
 longitude = -49.3436878
-urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway---jardim-curitiba-jardim-curitiba/ad7accaa-afb7-443c-bb5e-7a924f3ad137"
+urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway-vera-cruz-conjunto-vera-cruz/8bf33c63-8572-4dd2-8281-c216d82c1116"
 
 
 merchantOpenDelivery: Merchant
@@ -55,6 +55,14 @@ def run():
                 cnpj = merchantExtra.get("documents").get("CNPJ").get("value")
                 catalogGroup = merchant.get("contextSetup").get("catalogGroup")
 
+                menu = Menu(
+                    id=UUID5(catalogGroup),
+                    name="IFood",
+                    description="Menu importado do IFood",
+                    externalCode=catalogGroup,
+                    categoryId=[],
+                )
+
                 merchantOpenDelivery = Merchant(
                     id=UUID5(cnpj),
                     lastUpdate=datetime.now().isoformat(),
@@ -67,30 +75,11 @@ def run():
                     basicInfo=transform_basic_info(
                         merchant=merchant, merchantExtra=merchantExtra
                     ),
-                    menus=[
-                        Menu(
-                            id=UUID5(catalogGroup),
-                            name="IFood",
-                            description="Menu importado do IFood",
-                            externalCode=catalogGroup,
-                            categoryId=[],
-                        )
-                    ],
-                    # services=transform_service(
-                    #    merchant=merchant,
-                    #    merchantExtra=merchantExtra,
-                    #    menuId=menus[0].get("id"),
-                    # ),
-                    # menus=menus,
+                    menus=[menu],
+                    services=transform_service(
+                        merchant=merchant, merchantExtra=merchantExtra, menuId=menu.id
+                    ),
                 ).model_dump()
-
-                # result = requests.post(
-                #    "https://webhook.site/59bdf0e1-5f9e-4a81-b6a3-c1d41684642d",
-                #    data=merchantOpenDelivery.model_dump_json(indent=2),
-                #    headers={"Content-Type": "application/json"},
-                # )
-                # if result.status_code == 200:
-                #    print(result)
 
             if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
                 catalogIfood = response.json().get("data").get("menu")
