@@ -132,7 +132,7 @@ class BasicInfo(BaseModel):
     contactPhones: ContactPhones
     logoImage: Image
     bannerImage: Image
-    createdAt: datetime
+    createdAt: str
 
 
 class TimePeriods(BaseModel):
@@ -229,11 +229,11 @@ class OptionGroup(BaseModel):
 
 
 class Merchant(BaseModel):
-    lastUpdate: datetime
+    lastUpdate: str
     TTL: int
     id: str
     status: Status
     basicInfo: BasicInfo
-    services: List[Service]
-    menus: List[Menu]
-    categories: Optional[List[Category]] = []
+    # services: List[Service]
+    # menus: List[Menu]
+    # categories: Optional[List[Category]] = []
