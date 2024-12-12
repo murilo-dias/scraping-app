@@ -23,6 +23,9 @@ URL_WEBHOOK = os.getenv("URL_WEBHOOK")
 
 MERCHANT_OPEN_DELIVERY: Merchant
 
+if not LATITUDE or not LONGITUDE or not URL_SITE or not URL_WEBHOOK:
+    raise ValueError("Uma ou mais variáveis de ambiente estão ausentes.")
+
 
 def run():
     with sync_playwright() as p:
