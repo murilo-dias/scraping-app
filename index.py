@@ -13,7 +13,6 @@ latitude = -16.6201783
 longitude = -49.3436878
 urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway---jardim-curitiba-jardim-curitiba/ad7accaa-afb7-443c-bb5e-7a924f3ad137"
 
-menus: list[Menu] = []
 
 merchantOpenDelivery: Merchant
 
@@ -56,16 +55,6 @@ def run():
                 cnpj = merchantExtra.get("documents").get("CNPJ").get("value")
                 catalogGroup = merchant.get("contextSetup").get("catalogGroup")
 
-                menus.append(
-                    Menu(
-                        id=UUID5(catalogGroup),
-                        name="IFood",
-                        description="Menu importado do IFood",
-                        externalCode=catalogGroup,
-                        categoryId=[],
-                    ).model_dump()
-                )
-
                 merchantOpenDelivery = Merchant(
                     id=UUID5(cnpj),
                     lastUpdate=datetime.now().isoformat(),
@@ -78,6 +67,15 @@ def run():
                     basicInfo=transform_basic_info(
                         merchant=merchant, merchantExtra=merchantExtra
                     ),
+                    menus=[
+                        Menu(
+                            id=UUID5(catalogGroup),
+                            name="IFood",
+                            description="Menu importado do IFood",
+                            externalCode=catalogGroup,
+                            categoryId=[],
+                        )
+                    ],
                     # services=transform_service(
                     #    merchant=merchant,
                     #    merchantExtra=merchantExtra,
@@ -97,7 +95,9 @@ def run():
             if "https://marketplace.ifood.com.br/v1/merchants/" in response.url:
                 catalogIfood = response.json().get("data").get("menu")
 
-                result = transform_menu(catalogIfood, menus=menus)
+                result = transform_menu(
+                    catalogIfood, menus=merchantOpenDelivery.get("menus")
+                )
 
                 result = requests.post(
                     "https://webhook.site/b6ce4482-ef3f-467e-b4fa-fceb2cd3c89a",

@@ -234,6 +234,7 @@ class Merchant(BaseModel):
     id: str
     status: Status
     basicInfo: BasicInfo
+    menus: List[Menu]
     # services: List[Service]
     # menus: List[Menu]
     # categories: Optional[List[Category]] = []
