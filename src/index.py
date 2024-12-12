@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime
 from playwright.sync_api import sync_playwright
+import logging
 
 from load_env_vars import load_env_vars
 from entities.merchant_open_delivery import Menu, Merchant, Status
@@ -15,10 +16,15 @@ from transform import (
 MERCHANT_OPEN_DELIVERY: Merchant
 LATITUDE, LONGITUDE, URL_SITE, URL_WEBHOOK = load_env_vars()
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def run():
     try:
         with sync_playwright() as p:
+            logger.info("Iniciando automação do navegador")
+
             browser = p.chromium.launch(headless=True)
             context = browser.new_context()
             page = context.new_page()
@@ -43,6 +49,8 @@ def run():
             page.route("**/v1/merchant-info/graphql*", handle_route_merchant)
             page.route("**/v1/merchants/*/catalog", handle_route_catalog)
 
+            logger.info("configuração das url concluidas")
+
             def handle_response(response):
                 global MERCHANT_OPEN_DELIVERY
 
@@ -50,10 +58,16 @@ def run():
                     "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
                     in response.url
                 ):
+                    logger.info("Iniciando extração de dados")
+
                     merchant = response.json().get("data").get("merchant")
                     merchantExtra = response.json().get("data").get("merchantExtra")
                     cnpj = merchantExtra.get("documents").get("CNPJ").get("value")
                     catalogGroup = merchant.get("contextSetup").get("catalogGroup")
+
+                    logger.info(
+                        "Iniciando transformação dos dados para o padrão Open Delivery"
+                    )
 
                     menu = Menu(
                         id=UUID5(catalogGroup),
@@ -95,8 +109,14 @@ def run():
                     MERCHANT_OPEN_DELIVERY.items = result.get("items")
                     MERCHANT_OPEN_DELIVERY.optionGroups = result.get("optionGroups")
 
+                    logger.info(
+                        "Transformação dos dados para o padrão Open Delivery concluida"
+                    )
+                    logger.info("Extração de dados concluida")
+
             page.on("response", handle_response)
 
+            logger.info("Carregando site do ifood")
             page.goto(URL_SITE)
 
             page.wait_for_load_state("networkidle")
@@ -108,10 +128,13 @@ def run():
         print(f"Erro inesperado: {e}")
 
     try:
+        logger.info("Iniciando envio para webhook")
+
         result = requests.post(URL_WEBHOOK, json=MERCHANT_OPEN_DELIVERY.model_dump())
         result.raise_for_status()
 
-        print("Webhook enviado com sucesso!")
+        logger.info("Webhook enviado com sucesso!")
+
     except requests.RequestException as e:
         print(f"Erro ao enviar para o webhook: {e}")
 
