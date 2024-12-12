@@ -89,6 +89,7 @@ def run():
                 merchantOpenDelivery.categories = result.get("categories")
                 merchantOpenDelivery.itemOffers = result.get("itemOffers")
                 merchantOpenDelivery.items = result.get("items")
+                merchantOpenDelivery.optionGroups = result.get("optionGroups")
 
                 result = requests.post(
                     "https://webhook.site/b6ce4482-ef3f-467e-b4fa-fceb2cd3c89a",

@@ -239,3 +239,4 @@ class Merchant(BaseModel):
     categories: Optional[List[Category]] = []
     itemOffers: Optional[List[ItemOffer]] = []
     items: Optional[List[Item]] = []
+    optionGroups: Optional[List[OptionGroup]] = []
