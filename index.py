@@ -15,6 +15,8 @@ urlSite = "https://www.ifood.com.br/delivery/goiania-go/subway---jardim-curitiba
 
 menus: list[Menu] = []
 
+merchantOpenDelivery: Merchant
+
 
 def run():
     with sync_playwright() as p:
@@ -43,6 +45,8 @@ def run():
         page.route("**/v1/merchants/*/catalog", handle_route_catalog)
 
         def handle_response(response):
+            global merchantOpenDelivery
+
             if (
                 "https://marketplace.ifood.com.br/v1/merchant-info/graphql"
                 in response.url
@@ -50,7 +54,6 @@ def run():
                 merchant = response.json().get("data").get("merchant")
                 merchantExtra = response.json().get("data").get("merchantExtra")
                 cnpj = merchantExtra.get("documents").get("CNPJ").get("value")
-
                 catalogGroup = merchant.get("contextSetup").get("catalogGroup")
 
                 menus.append(
@@ -75,13 +78,13 @@ def run():
                     basicInfo=transform_basic_info(
                         merchant=merchant, merchantExtra=merchantExtra
                     ),
-                    services=transform_service(
-                        merchant=merchant,
-                        merchantExtra=merchantExtra,
-                        menuId=menus[0].get("id"),
-                    ),
-                    menus=menus,
-                )
+                    # services=transform_service(
+                    #    merchant=merchant,
+                    #    merchantExtra=merchantExtra,
+                    #    menuId=menus[0].get("id"),
+                    # ),
+                    # menus=menus,
+                ).model_dump()
 
                 # result = requests.post(
                 #    "https://webhook.site/59bdf0e1-5f9e-4a81-b6a3-c1d41684642d",
@@ -98,7 +101,7 @@ def run():
 
                 result = requests.post(
                     "https://webhook.site/b6ce4482-ef3f-467e-b4fa-fceb2cd3c89a",
-                    json=result,
+                    json=merchantOpenDelivery,
                 )
                 if result.status_code == 200:
                     print(result)
