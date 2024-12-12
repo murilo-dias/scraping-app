@@ -41,7 +41,7 @@ def run():
 
                     route.continue_(url=new_url)
 
-            # Modifica a URL para incluir merchantId, latitude e longitude nas requisições de catalog
+            # Modifica a URL para incluir o merchantId, latitude e longitude nas requisições de catalog
             def handle_route_catalog(route, request):
                 if "https://marketplace.ifood.com.br/v1/merchants/" in request.url:
                     merchantId = request.url.split("/")[5]
@@ -50,12 +50,13 @@ def run():
 
                     route.continue_(url=new_url)
 
-            # Intercepta a URL e aplica as modificações necessarias
+            # Intercepta a URL em questão e aplica as funções de modificação de url
             page.route("**/v1/merchant-info/graphql*", handle_route_merchant)
             page.route("**/v1/merchants/*/catalog", handle_route_catalog)
 
             logger.info("configuração das url concluidas")
 
+            # Função que lida com o response das requisições feitas pelo site
             def handle_response(response):
                 global MERCHANT_OPEN_DELIVERY
 
